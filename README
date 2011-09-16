@@ -1,1 +1,79 @@
-TODO: Instructions to setup up the solutions
+This is a benchmark on an important graph analytics use case --
+triangle counting. Read this blog post first (TBD) for the background
+description.
+
+We have provided the solutions in Hadoop, PIG and Vertica. You will be
+able to test the Hadoop and PIG solutions on the data sets that we
+provide. When the Vertica Community Edition is released, you will be
+able to test the Vertica solution as well.
+
+********************************************************************************
+** CONTENTS
+********************************************************************************
+README
+    This file.
+
+build.xml
+    makefile for ant.
+
+input/few-edges.txt
+    Sample graph file, contains 36 reciprocal edges and six triangles. This is
+    an example of the input format required by the following three solutions.
+    Edges must be {source:long, dest:long} pairs and each edge must have a
+    reciprocal edges (that is, there must exist a {dest, source}). The input
+    format is:
+      <long> <whitespace> <long> <newline>
+      <repeat>
+
+scripts/triangle_counter.sql
+    Vertica script to create an edges table, load data (from 'input/few-edges.txt'
+    by default) and execute a query that computes the number of triangles in
+    the corresponding graph.
+
+scripts/triangle_counter.pig
+    PIG script that computes the number of triangles in a graph. The input is an
+    edges file (described above) and the output is the number of triangles.
+
+src/com/vertica/mr/graphs/TriangleCounter.java
+    MapReduce code that runs in Hadoop and counts the number of triangles in
+    a graph. The input is an edges file (described above) and the output is the
+    number of triangles.
+
+third-party/pig/pig-0.8.1.tar.gz
+    PIG libraries included for convenience.
+
+third-party/hadoop/hadoop-0.20.2.tar.gz
+    Hadoop libraries included for convenience.
+
+
+********************************************************************************
+** REQUIREMENTS
+********************************************************************************
+
+* Java 6. Please make sure it is in your path and JAVA_HOME is set correctly.
+
+* Ant 1.6.5 or higher.
+
+
+********************************************************************************
+** EXAMPLES
+********************************************************************************
+Here are the basics. See the build.xml for other targets and full details.
+
+Hadoop:
+
+The following command, when executed from the base directory, runs the hadoop
+solution (in standalone mode) on the input/few-edges.txt file and outputs the
+result to the ant output, as well as a directory named "result".
+
+  $ ant triangle-counter-standalone
+
+
+PIG:
+
+The following command, when executed from the base directory, runs the PIG
+solution (in local mode) on the input/few-edges.txt file and outputs the result
+to the ant output.
+
+  $ ant pig-triangle-counter-local
+
