@@ -77,3 +77,15 @@ to the ant output.
 
   $ ant pig-triangle-counter-local
 
+********************************************************************************
+** PERFORMANCE TESTING
+********************************************************************************
+The performance results reported in the blog post are done based on an
+input data set of 1.3GB in size. That data set can be downloaded here:
+http://www.vertica.com/benchmark/trianglecounting/edges.txt.gz
+
+To set up the test, download and decompress the above file, and place
+it under input/few-edges.txt. Then use the above ant commands to kick off the testing.
+
+Alternatively, extend build.xml with new build targets for running the
+performance test.
