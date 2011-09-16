@@ -80,12 +80,16 @@ to the ant output.
 ********************************************************************************
 ** PERFORMANCE TESTING
 ********************************************************************************
-The performance results reported in the blog post are done based on an
-input data set of 1.3GB in size. That data set can be downloaded here:
+Our performance study is based on an input data set of 1.3GB in
+size. That data set can be downloaded here:
 http://www.vertica.com/benchmark/TriangleCounting/edges.txt.gz
 
-To set up the test, download and decompress the above file, and place
-it under input/few-edges.txt. Then use the above ant commands to kick off the testing.
+You are welcome to download and use it for your own testing.
 
-Alternatively, extend build.xml with new build targets for running the
-performance test.
+Note that the above ant commands use a single-instance setup, and are
+unsuitable for large-scale performance testing. The performance
+results reported in our blog post are done on a 4-node cluster, where
+each node has 12 cores, 96GB of RAM and 10GBit internconnect. The
+hardware power is equivalent to 4 nodes from the HP Vertica Analytics
+appliance:
+http://h18006.www1.hp.com/storage/server-solutions/vertica-analytics-overview.html
