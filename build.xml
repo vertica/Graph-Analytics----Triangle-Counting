@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="jar" name="mr-graphs">
+
+    <property environment="env"/>
+
+    <property name="third-party.dir" value="${basedir}/third-party"/>
+
+    <property name="build.dir" location="${basedir}/build" />
+    <property name="build.classes" location="${build.dir}/classes"/>
+
+    <property name="hadoop-base.dir" value="${third-party.dir}/hadoop"/>
+    <property name="hadoop.version" value="0.20.2"/>
+    <property name="hadoop.dir" value="${build.dir}/hadoop-${hadoop.version}"/>
+
+    <property name="pig-base.dir" value="${third-party.dir}/pig"/>
+    <property name="pig.version" value="0.8.1"/>
+    <property name="pig.dir" value="${build.dir}/pig-${pig.version}"/>
+    
+    <property name="jar.name" value="mr-graphs" />
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <property name="version" value="1.4.1" />
+
+    <property name="base.src.dir" location="${basedir}/src" />
+    <property name="src.dir" location="${base.src.dir}" />
+
+    <path id="compile.classpath">
+        <pathelement location="${graphs.jar}"/>
+        <pathelement location="${build.classes}"/>
+        <fileset dir="${hadoop.dir}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${hadoop.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="init">
+        <copy includeemptydirs="false" todir="${build.dir}">
+            <fileset dir="src" excludes="**/*.java"/>
+        </copy>
+
+        <condition property="notJava6">
+            <not><equals arg1="${java.specification.version}" arg2="1.6"/></not>
+        </condition>
+
+        <fail if="notJava6" message="JDK 1.6 is required." />
+    </target>
+
+    <target name="hadoop">
+        <untar src="${hadoop-base.dir}/hadoop-${hadoop.version}.tar.gz" dest="${build.dir}" compression="gzip"/>
+        <chmod file="${hadoop.dir}/bin/hadoop" perm="a+x"/>
+    </target>
+
+    <target name="pig">
+        <untar src="${pig-base.dir}/pig-${pig.version}.tar.gz" dest="${build.dir}" compression="gzip"/>
+        <chmod file="${pig.dir}/bin/pig" perm="a+x"/>
+    </target>
+
+    <target name="compile" depends="init,hadoop">
+        <mkdir dir="${build.classes}"/>
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" destdir="${build.classes}" source="${source}" target="${target}">
+            <src path="${src.dir}"/>
+            <classpath refid="compile.classpath"/>
+        </javac>
+    </target>
+    
+    <target name="jar" depends="compile" description="create jar">
+        <tstamp>
+            <format property="builtat" pattern="yyyy-MM-dd HH:mm:ss Z" timezone="America/New_York"/>
+        </tstamp>        
+        <exec executable="svnversion" outputproperty="svnversion"/>
+        <exec executable="uname" outputproperty="buildsystem"><arg value="-a"/></exec>
+        <jar jarfile="${build.dir}/${jar.name}.jar" basedir="${build.classes}">
+            <fileset dir="${src.dir}"/>
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Implementation-Vendor" value="Vertica Systems, Inc."/>
+                <attribute name="Implementation-Title" value="Vertica M/R Graphs"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="SVN-Revision" value="${svnversion}"/>
+                <attribute name="Build-System" value="${buildsystem}"/>
+                <attribute name="Build-Time" value="${builtat}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="triangle-counter-standalone" depends="jar">
+        <delete dir="${basedir}/temp1"/>
+        <delete dir="${basedir}/temp2"/>
+        <delete dir="${basedir}/result"/>
+        <exec executable="${hadoop.dir}/bin/hadoop">
+            <arg value="jar"/>
+            <arg value="${build.dir}/${jar.name}.jar"/>
+            <arg value="com.vertica.mr.graphs.TriangleCounter"/>
+            <arg value="${basedir}/input/few-edges.txt"/>
+            <arg value="${basedir}/result"/>
+        </exec>
+        <echo message="********************************************************************************"/>
+        <echo message="RESULT:"/>
+        <exec executable="cat">
+            <arg value="${basedir}/result/part-r-00000"/>
+        </exec>
+        <echo message="********************************************************************************"/>
+        <delete dir="${basedir}/temp1"/>
+        <delete dir="${basedir}/temp2"/>
+    </target>
+
+    <target name="pig-triangle-counter-local" depends="pig">
+        <exec executable="${pig.dir}/bin/pig">
+            <arg value="-x"/>
+            <arg value="local"/>
+            <arg value="${basedir}/scripts/triangle_counter.pig"/>
+        </exec>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${basedir}/result"/>
+    </target>
+
+    <target name="cleanall" depends="clean"/>
+
+</project>
